@@ -4,10 +4,27 @@ import shutil
 import duckdb
 import kagglehub
 import pandas as pd
+import ftfy
 
 dataset_path = kagglehub.dataset_download("thedevastator/books-sales-and-ratings")
 books_path = os.path.join(dataset_path, os.listdir(dataset_path)[0])
-shutil.copy(books_path, 'books.csv')
+# shutil.copy(books_path, 'books.csv')
+
+try:
+    temp_df = pd.read_csv(books_path, encoding='ISO-8859-1')
+    
+    # --- Naprawa kodowania znaków ---
+    for col in temp_df.select_dtypes(include="object").columns:
+        temp_df[col] = temp_df[col].apply(lambda x: ftfy.fix_text(x) if isinstance(x, str) else x)
+
+    # Zapisujemy jako UTF-8 – to naprawi plik 'books.csv' na dysku
+    temp_df.to_csv('books.csv', index=False, encoding='utf-8')
+    print("Plik books.csv został naprawiony i zapisany w UTF-8.")
+    
+    books_path = 'books.csv' 
+except Exception as e:
+    print(f"Błąd podczas konwersji pliku: {e}")
+    exit()
 
 # Create a DuckDB database
 DB_PATH = "bookstore.ddb"

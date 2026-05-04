@@ -7,3 +7,10 @@ sources:
       - name: ext_customers
       - name: ext_transactions
       - name: ext_books
+        external:
+          location: 'gs://TWOJ_BUCKET/books.csv' # Podaj swoją ścieżkę
+          options:
+            format: 'CSV'
+            skip_leading_rows: 1
+            encoding: 'UTF-8'
+            allow_quoted_newlines: true
