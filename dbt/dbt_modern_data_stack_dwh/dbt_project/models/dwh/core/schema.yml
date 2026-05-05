@@ -1,0 +1,106 @@
+version: 2
+
+models:
+  - name: dim_books
+    description: "Table containing unique books with surrogate keys for author and publisher."
+    columns:
+      - name: book_id
+        tests:
+          - unique
+          - not_null
+      - name: title
+        tests:
+          - not_null
+      - name: author_id
+        tests:
+          - not_null
+      - name: publisher_id
+        tests:
+          - not_null
+
+  - name: dim_authors
+    description: "Author dimension table."
+    columns:
+      - name: author_id
+        tests:
+          - unique
+          - not_null
+      - name: author_name
+        tests:
+          - not_null
+
+  - name: dim_publishers
+    description: "Publisher dimension table."
+    columns:
+      - name: publisher_id
+        tests:
+          - unique
+          - not_null
+      - name: publisher_name
+        tests:
+          - not_null
+
+  - name: dim_customers
+    description: "Customer dimension table."
+    columns:
+      - name: customer_id
+        tests:
+          - unique
+          - not_null
+
+  - name: fct_transactions
+    description: "Fact table with all transaction items."
+    tests:
+      - dbt_utils.unique_combination_of_columns:
+          combination_of_columns:
+            - transaction_id
+            - book_id
+            - unit_price
+    columns:
+      - name: transaction_id
+        tests:
+          - not_null
+      - name: book_id
+        tests:
+          - not_null
+          - relationships:
+              to: ref('dim_books')
+              field: book_id
+      - name: customer_id
+        tests:
+          - not_null
+          - relationships:
+              to: ref('dim_customers')
+              field: customer_id
+      - name: author_id
+        tests:
+          - not_null
+          - relationships:
+              to: ref('dim_authors')
+              field: author_id
+      - name: publisher_id
+        tests:
+          - not_null
+          - relationships:
+              to: ref('dim_publishers')
+              field: publisher_id
+      - name: unit_price
+        tests:
+          - not_null
+      - name: quantity
+        tests:
+          - not_null
+      - name: total_item_price
+        tests:
+          - not_null
+
+  - name: metrics_daily_sales
+    description: "Daily aggregated sales metrics for business reporting."
+    columns:
+      - name: transaction_date
+        tests:
+          - not_null
+          - unique
+
+  - name: nested_transactions
+    description: "Denormalized transactions stored in a nested structure for performance."
