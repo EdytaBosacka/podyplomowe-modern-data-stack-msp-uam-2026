@@ -1,5 +1,8 @@
 **/.terraform.lock.hcl
 **/.terraform/**/*
 **/.tmp/*
-dbt/lab-dbt02/dbt_bookstore_lab/*
 *.user.yml
+logs/*
+!logs/.gitkeep
+staging/local-data-staging/*
+transformation/dbt_modern_data_stack_dwh/logs/*

@@ -1,1 +1,0 @@
-DETACH external_db;
