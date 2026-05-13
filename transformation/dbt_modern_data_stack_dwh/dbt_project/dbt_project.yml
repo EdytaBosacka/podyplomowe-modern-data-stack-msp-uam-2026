@@ -36,6 +36,8 @@ models:
     dwh:
       core:
         +schema: dwh
+      marts:
+        +schema: dwh
     semantic:
       +schema: semantic
     keystore:
