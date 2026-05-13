@@ -9,7 +9,7 @@ from airflow.operators.bash import BashOperator
 # --- Default Configuration ---
 # These values are used if not provided in the DAG Run Configuration (`dag_run.conf`)
 # They are loaded into the DAG's 'params' for easier Jinja access
-DEFAULT_DBT_PROJECT_DIR = os.getenv('DBT_PROJECT_DIR', '/config/workspace/podyplomowe-modern-data-stack-msp-uam-2026/dbt/dbt_modern_data_stack_dwh/dbt_project') # !! CHANGE THIS DEFAULT !!
+DEFAULT_DBT_PROJECT_DIR = os.getenv('DBT_PROJECT_DIR', '/config/workspace/podyplomowe-modern-data-stack-msp-uam-2026/transformation/dbt_modern_data_stack_dwh/dbt_project')
 DEFAULT_DBT_PROFILES_DIR = os.getenv('DBT_PROFILES_DIR') # Can be None if using default location
 DEFAULT_DBT_TARGET = os.getenv('DBT_TARGET')           # Can be None if using default from profiles.yml
 DEFAULT_DBT_MODELS = os.getenv('DBT_MODELS')           # Can be None to run all models

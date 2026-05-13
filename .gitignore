@@ -6,3 +6,13 @@ logs/*
 !logs/.gitkeep
 staging/local-data-staging/*
 transformation/dbt_modern_data_stack_dwh/logs/*
+# Python cache
+__pycache__/
+*.py[cod]
+*.log
+.env
+.venv/
+.airflowignore
+.pytest_cache/
+.idea/
+.vscode/
