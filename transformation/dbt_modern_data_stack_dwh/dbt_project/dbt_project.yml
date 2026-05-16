@@ -33,12 +33,16 @@ models:
   dbt_project:
     staging:
       +schema: stg
+    prep:
+      +schema: stg
+    semantic:
+      +schema: semantic
+    keystore:
+      +schema: security
     dwh:
       core:
         +schema: dwh
       marts:
         +schema: dwh
-    semantic:
-      +schema: semantic
-    keystore:
-      +schema: security
+    
+    
