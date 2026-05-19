@@ -17,6 +17,12 @@ DEFAULT_TRANSACTIONS_OUTPUT = "transactions.json"
 DEFAULT_TRANSACTIONS_OFFSET = 1
 DEFAULT_BOOKS_INPUT = "books.csv" # Default input for book data
 
+LOCALE_TO_COUNTRY = {
+    'en_GB': 'United Kingdom', 'de_DE': 'Germany', 'fr_FR': 'France', 
+    'es_ES': 'Spain', 'it_IT': 'Italy', 'pl_PL': 'Poland', 
+    'de_AT': 'Austria', 'de_CH': 'Switzerland'
+}
+
 # Initialize Faker
 fake = Faker(LOCALES) # Initialize with multiple locales for diversity
 
@@ -50,26 +56,38 @@ def generate_customers(num_customers, output_file, customers_offset):
             writer = csv.writer(file)
             writer.writerow(header)
 
-            for customer_id in range(customers_offset, num_customers + 1 + customers_offset):
+            for customer_id in range(customers_offset, num_customers + customers_offset):
                 locale = random.choice(LOCALES)
                 # Temporarily set locale for this customer for better geographical consistency
                 current_faker = Faker(locale)
                 first_name = current_faker.first_name()
                 last_name = current_faker.last_name()
-                email = current_faker.email()
+                email = f"{first_name.lower()}.{last_name.lower()}@{current_faker.free_email_domain()}"
                 phone_number = current_faker.phone_number()
                 address = current_faker.street_address().replace('\n', '\\n') # Handle multi-line addresses
                 city = current_faker.city()
                 # Get country from the current locale if possible, otherwise use default faker
                 try:
                     # Use current_country_code and convert to country name or use country() directly
-                    country = current_faker.country()
+                    country = LOCALE_TO_COUNTRY.get(locale, current_faker.country())
                 except AttributeError: # Fallback if specific methods aren't available
                      country = fake.country() # Use the general pool faker
 
                 postal_code = current_faker.postcode()
-                age = random.randint(18, 80)
-                gender = random.choice(['Male', 'Female', 'Other'])
+
+                if locale in ['de_DE', 'de_CH', 'de_AT', 'fr_FR']:
+                    # Rynek dojrzały: średnio starszy klient (np. 40-70 lat)
+                    age = int(random.normalvariate(52, 12))
+                    gender = random.choices(['Male', 'Female', 'Other'], [0.46, 0.51, 0.03])[0]
+                elif locale in ['en_GB', 'pl_PL', 'es_ES', 'it_IT']:
+                    # Rynek młodszy: studenci i młodzi dorośli (np. 18-35 lat)
+                    age = int(random.normalvariate(28, 7))
+                    gender = random.choices(['Female', 'Male', 'Other'], [0.58, 0.39, 0.03])[0]
+                else:
+                    age = random.randint(18, 80)
+                    gender = random.choice(['Male', 'Female', 'Other'])
+                age = max(18, min(85, age))
+
                 # Ensure registration date is plausible (e.g., not in the future, within last N years)
                 max_reg_days_ago = (date.today() - date(2010, 1, 1)).days # Example: up to ~15 years ago
                 reg_days_ago = random.randint(1, max(1, max_reg_days_ago)) # Ensure at least 1 day ago
@@ -162,14 +180,36 @@ def generate_transactions(customers_data, books_data, start_date, end_date, outp
                 items = []
                 num_items_in_transaction = random.randint(1, 5)
                 for _ in range(num_items_in_transaction):
-                    unit_price = round(random.uniform(5.99, 49.99), 2)
+                    # unit_price = round(random.uniform(5.99, 49.99), 2)
                     quantity = random.choices([1, 2, 3], [0.8, 0.15, 0.05])[0] # More likely to buy 1 item
+                    catalog_price = 0
+                    book_genre = "unknown"
 
                     # Safely select a book_id if book data is available
                     if books_data:
-                         book_id = random.choice(books_data)['index']
+                        selected_book = random.choice(books_data)
+                        book_id = selected_book['index']
+                        book_genre = selected_book.get('genre', '').lower()
+
+                        try:
+                            catalog_price = float(selected_book.get('sale price', 0))
+                        except (ValueError, TypeError):
+                            catalog_price = 0
                     else:
                          book_id = "UNKNOWN" # Placeholder if no book data
+
+                    if catalog_price > 0:
+                        if random.random() < 0.10:
+                            unit_price = round(catalog_price * random.choice([0.90, 0.80]), 2) # 10% lub 20% zniżki
+                        else:
+                            unit_price = catalog_price
+                    else:
+                        if 'nonfiction' in book_genre:
+                            unit_price = round(random.uniform(5.99, 14.99), 2)
+                        elif 'fiction' in book_genre:
+                            unit_price = round(random.uniform(0.99, 8.99), 2)
+                        else:
+                            unit_price = round(random.uniform(1.99, 9.99), 2)
 
                     items.append({
                         "book_id": book_id,
