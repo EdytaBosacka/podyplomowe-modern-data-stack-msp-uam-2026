@@ -5,5 +5,9 @@ SELECT
     first_name,        
     last_name,         
     email,             
-    registration_date
+    registration_date,
+    country,
+    city,
+    age,
+    gender
 FROM {{ ref('stg_customers') }}

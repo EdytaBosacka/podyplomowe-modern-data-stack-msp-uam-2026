@@ -5,6 +5,7 @@ from datetime import date, timedelta, datetime
 from faker import Faker
 import argparse
 import os
+import glob
 
 # --- Configuration ---
 LOCALES = ['en_GB', 'de_DE', 'fr_FR', 'es_ES', 'it_IT', 'pl_PL', 'de_AT', 'de_CH', 'de_DE']
@@ -169,7 +170,9 @@ def generate_transactions(customers_data, books_data, start_date, end_date, outp
         current_date = trans_start_date
         while current_date <= end_date:
             # Probability of making a transaction in a given ~monthly interval
-            if random.random() < 0.3: # Approx. 30% chance per interval
+            probability = 0.30 if args.mode == 'initial' else 0.01
+
+            if random.random() < probability:
                 # Generate transaction date somewhere within the next interval (approx month)
                 # Ensure it doesn't exceed the end_date
                 max_days_offset = (end_date - current_date).days
@@ -279,6 +282,34 @@ def load_customers(input_file):
     except Exception as e:
         print(f"Error reading customer file {input_file}: {e}")
         return None
+    return customers
+
+def load_all_historical_customers(input_path):
+    """
+    Loads customers from all CSV files matching the pattern or from a single file.
+    
+    Example:
+        input_path can be "data/customers_*.csv"
+    """
+    print(f"Loading all historical customers from pattern: {input_path}...")
+    customers = []
+    
+    file_list = glob.glob(input_path) if '*' in input_path else [input_path]
+    
+    if not file_list:
+        print(f"Warning: No customer files found for path {input_path}")
+        return []
+
+    for file_path in file_list:
+        try:
+            with open(file_path, mode='r', newline='', encoding='utf-8') as file:
+                reader = csv.DictReader(file)
+                for row in reader:
+                    customers.append(row)
+        except Exception as e:
+            print(f"Error reading file {file_path}: {e}")
+            
+    print(f"Successfully loaded TOTAL of {len(customers)} historical customers.")
     return customers
 
 def load_books(input_file):
@@ -415,6 +446,12 @@ def parse_arguments():
         help="Path to the input CSV file containing book data (requires 'index' header).\n"
              f"Used if generating transactions. Default: {DEFAULT_BOOKS_INPUT}"
     )
+    parser.add_argument(
+        "--mode",
+        choices=['initial', 'recurrent'],
+        default='initial',
+        help="Prawdopodobieństwo zakupu: 'initial' (30% na start) lub 'recurrent' (1% dziennie dla powracających)"
+    )
 
     args = parser.parse_args()
 
@@ -424,11 +461,11 @@ def parse_arguments():
 
     # Check if customer input file exists ONLY if we are generating ONLY transactions
     if args.generate == 'transactions':
-        if not os.path.exists(args.customers_input):
-            parser.error(f"Customer input file specified (--customers-input {args.customers_input}) not found. "
-                         "This file is required when --generate is set to 'transactions'.")
-        # Optional: Add a check if customers_input is the same as customers_output when generate='transactions'
-        #           which might indicate user confusion, but could be valid.
+        matching_files = glob.glob(args.customers_input) if '*' in args.customers_input else [args.customers_input]
+        
+        if not matching_files or (not '*' in args.customers_input and not os.path.exists(args.customers_input)):
+            parser.error(f"Customer input file or pattern specified (--customers-input {args.customers_input}) not found. "
+                         "This file/pattern is required when --generate is set to 'transactions'.")
 
     return args
 
@@ -459,7 +496,7 @@ if __name__ == "__main__":
              exit(1)
     elif args.generate == 'transactions':
         # Load existing customers
-        customers = load_customers(args.customers_input)
+        customers = load_all_historical_customers(args.customers_input)
         if customers is None: # Check if customer loading failed critically
              print("Exiting: Failed to load customer data required for transaction generation.")
              exit(1)

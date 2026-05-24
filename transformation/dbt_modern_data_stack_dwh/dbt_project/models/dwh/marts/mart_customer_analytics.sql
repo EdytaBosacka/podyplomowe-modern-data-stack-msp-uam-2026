@@ -52,6 +52,10 @@ select
     c.first_name,
     c.last_name,
     c.registration_date,
+    c.country,
+    c.city,
+    c.age,
+    c.gender,
 
     cs.total_transactions,
     cs.total_books_sold,

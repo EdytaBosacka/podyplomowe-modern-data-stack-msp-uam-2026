@@ -10,7 +10,8 @@ podyplomowe-modern-data-stack-msp-uam-2026/
 │   │   └── external_tables/
 │   │       ├── ext_books.sql
 │   │       ├── ext_customers.sql
-│   │       └── ext_transactions.sql
+│   │       |── ext_transactions.sql
+|   |       |-- ext_transactions_recurrent.sql
 │   ├── docker/
 │   └── terraform/
 ├── transformation/

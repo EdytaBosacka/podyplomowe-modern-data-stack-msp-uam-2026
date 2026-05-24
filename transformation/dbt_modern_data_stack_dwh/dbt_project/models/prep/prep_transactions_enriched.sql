@@ -1,5 +1,15 @@
-WITH transactions AS (
+WITH transactions_initial AS (
     SELECT * FROM {{ source('gcs_raw', 'ext_transactions') }}
+),
+
+transactions_recurrent AS (
+    SELECT * FROM {{ source('gcs_raw', 'ext_transactions_recurrent') }}
+),
+
+transactions AS (
+    SELECT * FROM transactions_initial
+    UNION ALL
+    SELECT * FROM transactions_recurrent
 ),
 
 customers AS (
