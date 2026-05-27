@@ -76,18 +76,19 @@ with DAG(
         doc_md="Runs `dbt run`. Accepts `dbt_project_dir`, `dbt_profiles_dir`, `dbt_target`, `dbt_models`, `dbt_exclude` from config.",
     )
 
-#    dbt_test_task = BashOperator(
-#        task_id='dbt_test',
-#        bash_command=f"{bash_command_prefix} test {run_test_flags}",
-#        doc_md="Runs `dbt test`. Accepts `dbt_project_dir`, `dbt_profiles_dir`, `dbt_target`, `dbt_models`, `dbt_exclude` from config.",
-#    )
+    dbt_test_task = BashOperator(
+        task_id='dbt_test',
+        bash_command=f"{bash_command_prefix} test {run_test_flags}",
+        doc_md="Runs `dbt test`. Accepts `dbt_project_dir`, `dbt_profiles_dir`, `dbt_target`, `dbt_models`, `dbt_exclude` from config.",
+    )
 
-#    dbt_docs_generate_task = BashOperator(
-#        task_id='dbt_docs_generate',
-#        bash_command=f"{bash_command_prefix} docs generate {common_flags}", # Docs usually don't use select/exclude
-#        doc_md="Runs `dbt docs generate`. Accepts `dbt_project_dir`, `dbt_profiles_dir`, `dbt_target` from config.",
-#    )
+    dbt_docs_generate_task = BashOperator(
+        task_id='dbt_docs_generate',
+        bash_command=f"{bash_command_prefix} docs generate {common_flags}", # Docs usually don't use select/exclude
+        doc_md="Runs `dbt docs generate`. Accepts `dbt_project_dir`, `dbt_profiles_dir`, `dbt_target` from config.",
+    )
 
     # --- Define Task Dependencies ---
- #   dbt_seed_task >> dbt_run_task >> dbt_test_task >> dbt_docs_generate_task
-    dbt_run_task
+ #  dbt_seed_task >> dbt_run_task >> dbt_test_task >> dbt_docs_generate_task
+    dbt_run_task >> dbt_test_task >> dbt_docs_generate_task
+ #  dbt_run_task
